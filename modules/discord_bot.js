@@ -114,16 +114,18 @@ client.once('ready', async () => {
 client.on('messageCreate', async message => {
 	if (message.author.bot) return;
 	let hasSendPermission = true;
-	if (message.guild && message.guild.me) {
-		hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(Permissions.FLAGS.SEND_MESSAGES) : false || message.guild.me.permissions.has(Permissions.FLAGS.ADMINISTRATOR);
-	}
+	//console.log((message.channel?.permissionsFor(message.guild.me)?.has(Permissions.FLAGS.SEND_MESSAGES)))
+	//console.log(message.guild.me.permissionsIn(message.channel).has(Permissions.FLAGS.SEND_MESSAGES))
+	if (message.guild?.me)
+		hasSendPermission = (message.channel?.permissionsFor(message.guild.me)?.has(Permissions.FLAGS.SEND_MESSAGES) ?? false) || (message.guild?.me?.permissions?.has(Permissions.FLAGS.ADMINISTRATOR) ?? false);
+
 
 	let inputStr = message.content;
 	//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 	//LINE @名字
 	let mainMsg = inputStr.match(msgSplitor); //定義輸入字串
-	let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
-	let groupid = (message.guildId) ? message.guildId : '';
+	let trigger = (mainMsg && mainMsg[0]?.toString().toLowerCase()) || '';
+	let groupid = message.guildId || '';
 
 
 	//指定啟動詞在第一個詞&把大階強制轉成細階
@@ -143,7 +145,7 @@ client.on('messageCreate', async message => {
 	inputStr = checkPrivateMsg.inputStr;
 	let privatemsg = checkPrivateMsg.privatemsg;
 
-	let target = await exports.analytics.findRollList(inputStr.match(msgSplitor));
+	let target = await exports.analytics.findRollList(mainMsg);
 
 	if (!target) {
 		await nonDice(message)
@@ -169,32 +171,27 @@ client.on('messageCreate', async message => {
 	let userrole = 1;
 	//console.log(message.guild)
 
-	if (message.channelId) {
-		channelid = message.channelId;
-	}
-	if (message.guild && message.guild.name) {
-		titleName += message.guild.name + ' ';
-	}
-	if (message.channel && message.channel.name)
-		titleName += message.channel.name;
+	channelid = message.channelId || '';
 
-	if (message.author.id) {
-		userid = message.author.id;
-	}
-	if (message.member && message.member.user && message.member.user.tag) {
-		displayname = message.member.user.tag;
-	}
-	if (message.member && message.member.user && message.member.user.username) {
-		displaynameDiscord = message.member.user.username;
-	}
+
+	titleName += message.guild?.name + ' ' ?? '';
+
+	titleName += message.channel?.name ?? '';
+
+	userid = message.author?.id ?? '';
+
+	displayname = message.member?.user?.tag ?? '';
+
+	displaynameDiscord = message.member?.user?.username ?? '';
+
 	////DISCORD: 585040823232320107
 
 
-	if (groupid && message.channel.permissionsFor(client.user) && message.channel.permissionsFor(client.user).has(Permissions.FLAGS.MANAGE_CHANNELS)) {
+	if (groupid && message.channel?.permissionsFor(client.user)?.has(Permissions.FLAGS.MANAGE_CHANNELS)) {
 		userrole = 2
 	}
 
-	if (message.member && message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+	if (message.member?.permissions?.has(Permissions.FLAGS.ADMINISTRATOR)) {
 		userrole = 3
 	}
 	//userrole -1 ban ,0 nothing, 1 user, 2 dm, 3 admin 4 super admin
@@ -300,8 +297,8 @@ client.on('messageCreate', async message => {
 								rplyVal.text = displayname + rplyVal.text
 						}
 	*/
-	switch (true) {
-		case privatemsg == 1:
+	switch (privatemsg) {
+		case 1:
 			// 輸入dr  (指令) 私訊自己
 			//
 			if (groupid) {
@@ -312,7 +309,7 @@ client.on('messageCreate', async message => {
 				SendToReply(rplyVal.text, message);
 			}
 			return;
-		case privatemsg == 2:
+		case 2:
 			//輸入ddr(指令) 私訊GM及自己
 			//console.log('AAA', TargetGMTempID)
 			if (groupid) {
@@ -332,7 +329,7 @@ client.on('messageCreate', async message => {
 				}
 			}
 			return;
-		case privatemsg == 3:
+		case 3:
 			//輸入dddr(指令) 私訊GM
 			if (groupid) {
 				let targetGMNameTemp = "";
@@ -450,21 +447,21 @@ async function nonDice(message) {
 	await courtMessage({ result: "", botname: "Discord", inputStr: "", shardids: shardids })
 	let groupid = '',
 		userid = '';
-	if (message.guild && message.guild.id) {
-		groupid = message.guild.id;
-	}
-	if (message.author && message.author.id) {
-		userid = message.author.id;
-	}
+
+	groupid = message.guild?.id ?? '';
+
+
+	userid = message.author?.id ?? '';
+
 	if (!groupid || !userid) return;
 	let displayname = '',
 		membercount = null;
-	if (message.member && message.member.user && message.member.user.username) {
-		displayname = message.member.user.username;
-	}
+
+	displayname = message.member?.user?.username ?? '';
+
 	membercount = (message.guild) ? message.guild.memberCount : 0;
 	let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount);
-	if (groupid && LevelUp && LevelUp.text) {
+	if (groupid && LevelUp?.text) {
 		await SendToReplychannel(`@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, message.channel.id);
 	}
 
