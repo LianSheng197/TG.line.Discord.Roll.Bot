@@ -364,9 +364,62 @@ const developmentRollingRecord = mongoose.model('developmentRollingRecord', new 
     skillPer: Number,
     skillResult: Number,
     skillPerStyle: String,
-    userName: String
     //成功,失敗,大成功,大失敗
+    userName: String
 }));
+
+//控制修改的權限,只有擁有者可以修改
+const storytellerOwner = mongoose.model('storytellerOwner', new mongoose.Schema({
+    userID: String,
+    //作者名
+    userName: String,
+    //storyteller的Uid
+    storyID: [String]
+}));
+
+//兩種模式, 個人使用, 或一起使用
+const storytellerConductor = mongoose.model('storytellerConductor', new mongoose.Schema({
+    personalMode: Boolean,
+    userID: String,
+    groupID: String,
+    userName: String,
+    storyID: String,
+    //儲存變數, 如角色名字, 能力值
+    storageData: [{
+        name: String,
+        value: String
+    }],
+    //儲存跑到那個位置
+    location: String,
+    //暫時儲存該階段會對什麼回答有反應
+    locationDate: Array
+}));
+
+const storyteller = mongoose.model('storyteller', new mongoose.Schema({
+    //創作者
+    userID: String,
+    userName: String,
+
+    titleName: String,
+
+    events: [{
+        uid: String,
+        name: String,
+        rplyText: String,
+        nextEvent: [{
+            name: String,
+            gotoUid: String,
+            storageData: [{
+                name: String,
+                value: String
+            }]
+
+        }]
+    }]
+
+
+}));
+
 
 module.exports = {
     randomAns,
@@ -395,7 +448,10 @@ module.exports = {
     eventMember,
     eventList,
     developmentConductor,
-    developmentRollingRecord
+    developmentRollingRecord,
+    storyteller,
+    storytellerOwner,
+    storytellerConductor
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });
